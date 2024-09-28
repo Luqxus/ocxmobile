@@ -32,7 +32,7 @@ class TransferBloc extends Bloc<TransferEvent, TransferState> {
     NfcManager.instance.startSession(
       onDiscovered: (NfcTag tag) async {
         // prepare message from signed transaction
-        emit(TransferOfflineNFC(amount: event.amount, tag: tag));
+        add(TransferOfflineNFC(amount: event.amount, tag: tag));
       },
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:ocx_mobile/models/money.dart';
 import 'package:ocx_mobile/models/wallet.dart';
@@ -15,30 +17,54 @@ class SecureStorage {
   static const _emailKey = "EMAIL";
   static const _nonceKey = "NONCE";
   static const _balanceKey = "BALANCE";
+  static const _walletKey = "WALLET";
+  static const _txKey = "TRANSACTIONS";
+  // Future<void> persistEmailAndSecretKey({
+  //   required String email,
+  //   required String secretKey,
+  // }) async {
+  //   await _storage.write(key: _emailKey, value: email);
+  //   await _storage.write(key: _secretKey, value: secretKey);
+  // }
 
-  Future<void> persistEmailAndSecretKey({
-    required String email,
-    required String secretKey,
-  }) async {
-    await _storage.write(key: _emailKey, value: email);
-    await _storage.write(key: _secretKey, value: secretKey);
+  Future<String?> getWallet() async {
+    String? value = await _storage.read(key: _walletKey);
+
+    return value;
   }
 
-  Future<Wallet> getWallet() async {
-    String? value = await _storage.read(key: _balanceKey);
+  Future<void> persistWallet(String wallet) async {
+    await _storage.write(key: _walletKey, value: wallet);
+  }
 
-    Wallet wallet = Wallet(Money.fromBigString(value!), []);
+  Future<void> persistPendingTxs(String tx) async {
+    // Retrieve the existing list of transactions
+    String? transactionsJson = await _storage.read(key: _txKey);
+    List<String> transactions = [];
 
-    return wallet;
+    if (transactionsJson != null) {
+      // Decode the existing list if it exists
+      transactions = List<String>.from(json.decode(transactionsJson));
+    }
+
+    // Add the new transaction to the list
+    transactions.add(tx);
+
+    // Save the updated list back to secure storage
+    await _storage.write(
+      key: _txKey,
+      value: json.encode(transactions),
+    );
   }
 
   Future<void> setBalance(Money money) async {
     await _storage.write(key: _balanceKey, value: money.value.toString());
   }
 
-  Future<bool> hasEmail() async {
-    String? email = await _storage.read(key: _emailKey);
-    return email != null;
+  Future<Money> getBalance() async {
+    String? m = await _storage.read(key: _balanceKey);
+
+    return Money.fromBigString(m!);
   }
 
   Future<void> setNonce(int nonce) async {
@@ -59,25 +85,9 @@ class SecureStorage {
     await setNonce(_n + 1);
   }
 
-  Future<bool> hasSecretKey() async {
-    String? token = await _storage.read(key: _secretKey);
-    return token != null;
-  }
-
-  Future<String?> getEmail() async {
-    return _storage.read(key: _emailKey);
-  }
-
-  Future<String?> getSecretKey() async {
-    return _storage.read(key: _secretKey);
-  }
-
-  Future<void> deleteEmail() async {
-    await _storage.delete(key: _emailKey);
-  }
-
-  Future<void> deleteSecretKey() async {
-    await _storage.delete(key: _secretKey);
+  Future<bool> hasWallet() async {
+    String? wallet = await _storage.read(key: _walletKey);
+    return wallet != null;
   }
 
   Future<void> deleteAll() async {

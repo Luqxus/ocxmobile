@@ -1,192 +1,194 @@
-import 'dart:io';
-import 'dart:typed_data';
+// import 'dart:io';
+// import 'dart:typed_data';
 
-import 'package:ocx_mobile/models/money.dart';
-import 'package:ocx_mobile/service/secure_storage.dart';
-import 'package:web3auth_flutter/enums.dart';
-import 'package:web3auth_flutter/input.dart';
-import 'package:web3auth_flutter/output.dart';
-import 'package:web3auth_flutter/web3auth_flutter.dart';
-import 'package:web3dart/web3dart.dart';
-import 'package:convert/convert.dart';
-import 'package:ocx_mobile/models/wallet.dart' as wallet;
+// import 'package:ocx_mobile/models/money.dart';
+// import 'package:ocx_mobile/service/secure_storage.dart';
+// import 'package:web3auth_flutter/enums.dart';
+// import 'package:web3auth_flutter/input.dart';
+// import 'package:web3auth_flutter/output.dart';
+// import 'package:web3auth_flutter/web3auth_flutter.dart';
+// import 'package:web3dart/web3dart.dart';
+// import 'package:convert/convert.dart';
+// import 'package:ocx_mobile/models/wallet.dart' as wallet;
 
-import 'package:http/http.dart';
+// import 'package:http/http.dart';
 
-abstract class WalletRepository {
-  Future<String> signIn({required String email});
-  Future<String> signTransaction({
-    required String value,
-    required String to,
-  });
+// abstract class WalletRepository {
+//   Future<String> signIn({required String email});
+//   Future<String> signTransaction({
+//     required String value,
+//     required String to,
+//   });
 
-  Future<void> sendTransaction({required String tx});
+//   Future<List<String>> createWallet();
 
-  Future<String> getPrivKey();
+//   Future<void> sendTransaction({required String tx});
 
-  Future<String> getAddress();
+//   Future<String> getPrivKey();
 
-  Future<int> getNonce();
+//   Future<String> getAddress();
 
-  Future<wallet.Wallet> getWallet();
+//   Future<int> getNonce();
 
-  Future<Money> getBalance();
+//   Future<wallet.Wallet> getWallet();
 
-  Future<void> setBalance(Money money);
-}
+//   Future<Money> getBalance();
 
-class EthereumWalletRepository implements WalletRepository {
-  final String _apiUrl = "https://sepolia-rpc.scroll.io";
-  final SecureStorage _secureStorage = SecureStorage();
+//   Future<void> setBalance(Money money);
+// }
 
-  @override
-  Future<String> getPrivKey() async {
-    return await Web3AuthFlutter.getPrivKey();
-  }
+// class EthereumWalletRepository implements WalletRepository {
+//   final String _apiUrl = "https://sepolia-rpc.scroll.io";
+//   final SecureStorage _secureStorage = SecureStorage();
 
-  @override
-  Future<String> signIn({required String email}) async {
-    print(email);
-    await _initWeb3Auth();
+//   @override
+//   Future<String> getPrivKey() async {
+//     return await Web3AuthFlutter.getPrivKey();
+//   }
 
-    final Web3AuthResponse response = await Web3AuthFlutter.login(LoginParams(
-        loginProvider: Provider.email_passwordless,
-        extraLoginOptions: ExtraLoginOptions(login_hint: email)));
+//   @override
+//   Future<String> signIn({required String email}) async {
+//     print(email);
+//     await _initWeb3Auth();
 
-    return response.privKey!;
-  }
+//     final Web3AuthResponse response = await Web3AuthFlutter.login(LoginParams(
+//         loginProvider: Provider.email_passwordless,
+//         extraLoginOptions: ExtraLoginOptions(login_hint: email)));
 
-  Future<void> _initWeb3Auth() async {
-    Uri redirectUrl;
+//     return response.privKey!;
+//   }
 
-    if (Platform.isAndroid) {
-      redirectUrl = Uri.parse('w3a://com.example.ocx/auth');
+//   Future<void> _initWeb3Auth() async {
+//     Uri redirectUrl;
 
-      // w3a://com.example.w3aflutter/auth
-    } else if (Platform.isIOS) {
-      redirectUrl = Uri.parse('{bundleId}://auth');
-      // com.example.w3aflutter://openlogin
-    } else {
-      throw UnKnownException('Unknown platform');
-    }
+//     if (Platform.isAndroid) {
+//       redirectUrl = Uri.parse('w3a://com.example.ocx/auth');
 
-    String WEB3AUTH_CLIENT_ID =
-        "BMDfYtS2wQA1TTb2Z9R_G4bzQoKH-ctvG2P8wZHFGfYwiKwu5WdiudyQHD6NKlhW733f27ZuJnfnCMMnFxTweuQ";
+//       // w3a://com.example.w3aflutter/auth
+//     } else if (Platform.isIOS) {
+//       redirectUrl = Uri.parse('{bundleId}://auth');
+//       // com.example.w3aflutter://openlogin
+//     } else {
+//       throw UnKnownException('Unknown platform');
+//     }
 
-    try {
-      await Web3AuthFlutter.init(
-        Web3AuthOptions(
-          clientId: WEB3AUTH_CLIENT_ID,
-          network: Network.sapphire_devnet,
-          redirectUrl: redirectUrl,
-        ),
-      );
-    } catch (e) {
-      print(e.toString());
-    }
+//     String WEB3AUTH_CLIENT_ID =
+//         "BMDfYtS2wQA1TTb2Z9R_G4bzQoKH-ctvG2P8wZHFGfYwiKwu5WdiudyQHD6NKlhW733f27ZuJnfnCMMnFxTweuQ";
 
-    await Web3AuthFlutter.initialize();
-  }
+//     try {
+//       await Web3AuthFlutter.init(
+//         Web3AuthOptions(
+//           clientId: WEB3AUTH_CLIENT_ID,
+//           network: Network.sapphire_devnet,
+//           redirectUrl: redirectUrl,
+//         ),
+//       );
+//     } catch (e) {
+//       print(e.toString());
+//     }
 
-  @override
-  Future<wallet.Wallet> getWallet() async {
-    await getBalance();
-    return await _secureStorage.getWallet();
-  }
+//     await Web3AuthFlutter.initialize();
+//   }
 
-  @override
-  Future<String> signTransaction(
-      {required String value, required String to}) async {
-    EthPrivateKey credentials = await _getPrivKey();
-    EthereumAddress address = credentials.address;
-    final int nonce = await _secureStorage.getNonce();
+//   @override
+//   Future<wallet.Wallet> getWallet() async {
+//     await getBalance();
+//     return await _secureStorage.getWallet();
+//   }
 
-    Transaction tx = Transaction(
-      from: address,
-      to: EthereumAddress.fromHex(to),
-      gasPrice: EtherAmount.inWei(BigInt.one),
-      maxGas: 3000000,
-      value: EtherAmount.fromBase10String(
-        EtherUnit.wei,
-        "1000000",
-      ),
-      nonce: nonce,
-    );
+//   @override
+//   Future<String> signTransaction(
+//       {required String value, required String to}) async {
+//     EthPrivateKey credentials = await _getPrivKey();
+//     EthereumAddress address = credentials.address;
+//     final int nonce = await _secureStorage.getNonce();
 
-    Uint8List signedTx = signTransactionRaw(tx, credentials, chainId: 534351);
+//     Transaction tx = Transaction(
+//       from: address,
+//       to: EthereumAddress.fromHex(to),
+//       gasPrice: EtherAmount.inWei(BigInt.one),
+//       maxGas: 3000000,
+//       value: EtherAmount.fromBase10String(
+//         EtherUnit.wei,
+//         "1000000",
+//       ),
+//       nonce: nonce,
+//     );
 
-    String serializedTx = hex.encode(signedTx);
+//     Uint8List signedTx = signTransactionRaw(tx, credentials, chainId: 534351);
 
-    await _secureStorage.incrementNonce();
+//     String serializedTx = hex.encode(signedTx);
 
-    return serializedTx;
-  }
+//     await _secureStorage.incrementNonce();
 
-  @override
-  Future<void> sendTransaction({required String tx}) async {
-    final client = Web3Client(_apiUrl, Client());
+//     return serializedTx;
+//   }
 
-    String txHash =
-        await client.sendRawTransaction(Uint8List.fromList(hex.decode(tx)));
-    print('Transaction Hash: $txHash');
-  }
+//   @override
+//   Future<void> sendTransaction({required String tx}) async {
+//     final client = Web3Client(_apiUrl, Client());
 
-  /// get the nonce of the current transaction by [EthereumAddress]
-  @override
-  Future<int> getNonce() async {
-    EthereumAddress address = await _getAddress();
+//     String txHash =
+//         await client.sendRawTransaction(Uint8List.fromList(hex.decode(tx)));
+//     print('Transaction Hash: $txHash');
+//   }
 
-    // create client
-    Web3Client client = Web3Client(_apiUrl, Client());
+//   /// get the nonce of the current transaction by [EthereumAddress]
+//   @override
+//   Future<int> getNonce() async {
+//     EthereumAddress address = await _getAddress();
 
-    // get transaction count from address
-    return await client.getTransactionCount(address); // Set the correct nonce
-  }
+//     // create client
+//     Web3Client client = Web3Client(_apiUrl, Client());
 
-  @override
-  Future<Money> getBalance() async {
-    Web3Client client = Web3Client(_apiUrl, Client());
-    EthereumAddress address = await _getAddress();
-    EtherAmount amount = await client.getBalance(address);
+//     // get transaction count from address
+//     return await client.getTransactionCount(address); // Set the correct nonce
+//   }
 
-    BigInt v = amount.getInWei;
-    Money m = Money(v);
+//   @override
+//   Future<Money> getBalance() async {
+//     Web3Client client = Web3Client(_apiUrl, Client());
+//     EthereumAddress address = await _getAddress();
+//     EtherAmount amount = await client.getBalance(address);
 
-    _secureStorage.setBalance(m);
+//     BigInt v = amount.getInWei;
+//     Money m = Money(v);
 
-    return m;
-  }
+//     _secureStorage.setBalance(m);
 
-  @override
-  Future<String> getAddress() async {
-    EthereumAddress address = await _getAddress();
+//     return m;
+//   }
 
-    return address.hexEip55;
-  }
+//   @override
+//   Future<String> getAddress() async {
+//     EthereumAddress address = await _getAddress();
 
-  @override
-  Future<void> setBalance(Money money) async {
-    await _secureStorage.setBalance(money);
-  }
+//     return address.hexEip55;
+//   }
 
-  /// get [EthereumAddress] from [EthPrivateKey]
-  Future<EthereumAddress> _getAddress() async {
-    // get privKey
-    EthPrivateKey privKey = await _getPrivKey();
+//   @override
+//   Future<void> setBalance(Money money) async {
+//     await _secureStorage.setBalance(money);
+//   }
 
-    // get address from privKey
-    return privKey.address;
-  }
+//   /// get [EthereumAddress] from [EthPrivateKey]
+//   Future<EthereumAddress> _getAddress() async {
+//     // get privKey
+//     EthPrivateKey privKey = await _getPrivKey();
 
-  /// get [EthPrivateKey]
-  Future<EthPrivateKey> _getPrivKey() async {
-    // get privKey string from secure storage
-    String? privKey = await _secureStorage.getSecretKey();
+//     // get address from privKey
+//     return privKey.address;
+//   }
 
-    /// [EthPrivateKey] from string privKey
-    EthPrivateKey credentials = EthPrivateKey.fromHex(privKey!);
+//   /// get [EthPrivateKey]
+//   Future<EthPrivateKey> _getPrivKey() async {
+//     // get privKey string from secure storage
+//     String? privKey = await _secureStorage.getSecretKey();
 
-    /// [EthPrivateKey]
-    return credentials;
-  }
-}
+//     /// [EthPrivateKey] from string privKey
+//     EthPrivateKey credentials = EthPrivateKey.fromHex(privKey!);
+
+//     /// [EthPrivateKey]
+//     return credentials;
+//   }
+// }

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:web3dart/web3dart.dart';
 
 class Money {

@@ -11,7 +11,7 @@ class WalletInitial extends WalletState {}
 class WalletLoading extends WalletState {}
 
 class FetchedWallet extends WalletState {
-  final Wallet wallet;
+  final WalletModel wallet;
 
   FetchedWallet(this.wallet);
 }

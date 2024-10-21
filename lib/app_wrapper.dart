@@ -5,7 +5,8 @@ import 'package:ocx_mobile/bloc/auth/state.dart';
 import 'package:ocx_mobile/bloc/signin/bloc.dart';
 import 'package:ocx_mobile/bloc/wallet/bloc.dart';
 import 'package:ocx_mobile/bloc/wallet/event.dart';
-import 'package:ocx_mobile/repository/wallet_repository.dart';
+import 'package:ocx_mobile/repository/default_wallet_repository.dart';
+import 'package:ocx_mobile/screens/auth/auth_screen.dart';
 import 'package:ocx_mobile/screens/auth/signin_screen.dart';
 import 'package:ocx_mobile/screens/home/home_screen.dart';
 import 'package:ocx_mobile/screens/loading_screen.dart';
@@ -13,8 +14,9 @@ import 'package:ocx_mobile/screens/onboarding/onboarding_screen.dart';
 
 class AppWrapper extends StatelessWidget {
   AppWrapper({super.key});
-  final EthereumWalletRepository ethereumWalletRepository =
-      EthereumWalletRepository();
+
+  final WalletRepository ethereumWalletRepository = DefaultWalletRepository();
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
@@ -22,14 +24,7 @@ class AppWrapper extends StatelessWidget {
         if (state is OnboardingNotComplete) {
           return const OnboardingScreen();
         } else if (state is AuthenticationUnauthenticated) {
-          return BlocProvider(
-            create: (context) => SignInBloc(
-              authenticationBloc: BlocProvider.of<AuthenticationBloc>(context),
-              repository:
-                  BlocProvider.of<AuthenticationBloc>(context).walletRepository,
-            ),
-            child: SignInScreen(),
-          );
+          return const AuthScreen();
         } else if (state is AuthenticationAuthenticated) {
           return BlocProvider.value(
             value: BlocProvider.of<WalletBloc>(context)..add(Fetch()),

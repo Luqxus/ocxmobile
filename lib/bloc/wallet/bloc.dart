@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocx_mobile/bloc/wallet/event.dart';
 import 'package:ocx_mobile/bloc/wallet/state.dart';
 import 'package:ocx_mobile/models/wallet.dart';
+import 'package:ocx_mobile/repository/default_wallet_repository.dart';
 import 'package:ocx_mobile/repository/wallet_repository.dart';
 
 class WalletBloc extends Bloc<WalletEvent, WalletState> {
@@ -16,7 +17,7 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
     // fetch wallet from wallet repository
     emit(WalletLoading());
 
-    Wallet wallet = await walletRepository.getWallet();
+    WalletModel wallet = await walletRepository.getWallet();
 
     print(wallet.balance);
 

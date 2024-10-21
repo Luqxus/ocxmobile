@@ -17,8 +17,9 @@ class SecureStorage {
   static const _emailKey = "EMAIL";
   static const _nonceKey = "NONCE";
   static const _balanceKey = "BALANCE";
+  static const _addressKey = "ADDRESS";
   static const _walletKey = "WALLET";
-  static const _txKey = "TRANSACTIONS";
+  static const _pendingTxKey = "PENDING_TRANSACTIONS";
   // Future<void> persistEmailAndSecretKey({
   //   required String email,
   //   required String secretKey,
@@ -39,7 +40,7 @@ class SecureStorage {
 
   Future<void> persistPendingTxs(String tx) async {
     // Retrieve the existing list of transactions
-    String? transactionsJson = await _storage.read(key: _txKey);
+    String? transactionsJson = await _storage.read(key: _pendingTxKey);
     List<String> transactions = [];
 
     if (transactionsJson != null) {
@@ -52,13 +53,21 @@ class SecureStorage {
 
     // Save the updated list back to secure storage
     await _storage.write(
-      key: _txKey,
+      key: _pendingTxKey,
       value: json.encode(transactions),
     );
   }
 
   Future<void> setBalance(Money money) async {
     await _storage.write(key: _balanceKey, value: money.value.toString());
+  }
+
+  Future<List<String>> getTransactions() async {
+    return List.of([]);
+  }
+
+  Future<String> getAddress() async {
+    return "";
   }
 
   Future<Money> getBalance() async {

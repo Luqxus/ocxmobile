@@ -32,7 +32,7 @@ class HomeScreen extends StatelessWidget {
               height: 32.0,
             ),
             // wallet action buttons
-            const WalletActionButtons(),
+            // const WalletActionButtons(),
           ],
         ),
       ),

@@ -2,14 +2,23 @@ import 'dart:math';
 import 'dart:typed_data';
 // import 'dart:typed_data';
 import 'package:convert/convert.dart';
+import 'package:ocx_mobile/models/money.dart';
 
-// import 'package:ocx_mobile/models/wallet.dart' hide Transaction;
+import 'package:ocx_mobile/models/wallet.dart' hide Transaction;
 import 'package:ocx_mobile/service/secure_storage.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 
 abstract class WalletRepository {
   // Future<Credentials> createWallet();
+  Future<void> createWallet(String pin);
+
+  Future<WalletModel> getWallet();
+
+  Future<void> signTransaction(
+      {required String value, required String to, required String pin});
+
+  Future<void> sendTransaction({required String tx});
 }
 
 class DefaultWalletRepository implements WalletRepository {
@@ -30,14 +39,16 @@ class DefaultWalletRepository implements WalletRepository {
     _secureStorage.persistWallet(wallet.toJson());
   }
 
-  Future<Wallet> _getWallet(String password) async {
-    // get wallet
-    String? hex = await _secureStorage.getWallet();
+  Future<WalletModel> getWallet() async {
+    Money balance = await _secureStorage.getBalance();
+    List<String> transactions = await _secureStorage.getTransactions();
+    String address = await _secureStorage.getAddress();
 
-    // Parses a private key from a hexadecimal representation.
-    Wallet wallet = Wallet.fromJson(hex!, password);
-
-    return wallet;
+    return WalletModel(
+      balance,
+      List.of([]),
+      EthereumAddress.fromHex(address),
+    );
   }
 
   // Future<EthereumAddress> getAddress() async {
@@ -104,4 +115,14 @@ class DefaultWalletRepository implements WalletRepository {
   //   // get transaction count from address
   //   return await client.getTransactionCount(address); // Set the correct nonce
   // }
+
+  Future<Wallet> _getWallet(String pin) async {
+    // get wallet
+    String? hex = await _secureStorage.getWallet();
+
+    // Parses a private key from a hexadecimal representation.
+    Wallet wallet = Wallet.fromJson(hex!, pin);
+
+    return wallet;
+  }
 }
